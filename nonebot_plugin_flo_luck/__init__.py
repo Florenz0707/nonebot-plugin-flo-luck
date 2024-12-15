@@ -18,8 +18,18 @@ from nonebot_plugin_uninfo import Uninfo
 
 __plugin_meta__ = PluginMetadata(
     name="nonebot-plugin-flo-luck",
-    description="",
-    usage="",
+    description="Florenz 版本的 jrrp， 主要追加了特殊列表与排行功能。",
+    usage="""==============用户使用==============
+    1> jrrp 查看今日幸运值。
+    2> jrrp.week (month|year|all) 查看平均幸运值。
+    3> jrrp.rank 查看自己的幸运值在今日的排行。
+    ============超级用户使用============
+    4> jrrp.add user_id [-g greeting] [-b bottom] [-t top] 
+       将QQ号为user_id的用户加入特殊列表，问候语为greeting，幸运值取值为[bottom, top]。
+       默认无问候语，取值[0, 100]。
+    5> jrrp.del user_id 将用户移出特殊列表。
+    6> jrrp.check 查看当前特殊列表。
+    """,
     homepage="https://github.com/Florenz0707/nonebot-plugin-flo-luck",
     type="application",
     supported_adapters=inherit_supported_adapters(
@@ -155,7 +165,7 @@ jrrp_del = on_alconna(
     priority=5,
     permission=SUPERUSER
 )
-jrrp_check = on_alconna("jrrp.check", use_cmd_start=True, block=True, priority=5)
+jrrp_check = on_alconna("jrrp.check", use_cmd_start=True, block=True, priority=5, permission=SUPERUSER)
 
 
 # command functions
@@ -166,7 +176,8 @@ async def jrrp_handler(session: Uninfo):
     bottom, top = 0, 100
     if (info := sp_conn.select_by_user(user_id)) is not None:
         bottom, top = info[1], info[2]
-        await UniMessage.text(info[0]).send()
+        if info[0] != "":
+            await UniMessage.text(info[0]).send()
     if luck_val == -1:
         luck_val = luck_generator(user_id, bottom, top)
         luck_conn.insert(user_id, luck_val)
@@ -288,9 +299,9 @@ async def jrrp_check_handler():
         message = ""
         for item in items:
             message += f"""
-    user_id: {item[0]},
-    greeting: '{item[1]}',
-    bottom: {item[2]},
-    top: {item[3]}
-    """
+user_id: {item[0]},
+greeting: '{item[1]}',
+bottom: {item[2]},
+top: {item[3]}
+"""
         await UniMessage.text(message).finish(at_sender=True)
