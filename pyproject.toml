@@ -15,7 +15,7 @@ builtin_plugins = []
 
 [tool.poetry]
 name = "nonebot-plugin-flo-luck"
-version = "0.1.0"
+version = "0.1.1"
 description = "nonebot plugin for today's luck."
 authors = ["florenz <florenz@tju.edu.cn>"]
 license = "MIT"
