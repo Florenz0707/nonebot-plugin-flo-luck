@@ -45,13 +45,6 @@ sub_plugins = load_plugins(
 
 db_conn = DataBase()
 
-"""
-
-100
-
-希望这次的回答能够满足您对于极端化评价的需求。
-"""
-
 # luck value tips
 # format: (val: int, short_info: str, (long_info_1: str, long_info_2, ...))
 luck_info = (
