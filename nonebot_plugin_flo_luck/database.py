@@ -70,6 +70,13 @@ class LuckDataBase:
         result = self.cursor.fetchall()
         return result
 
+    def select_by_date(self, date: str = today()) -> list[tuple[str, int]]:
+        self.cursor.execute(
+            "select user_id, val from luck_data where date = ?",
+            (date,)
+        )
+        return self.cursor.fetchall()
+
     def select_by_range(self, user_id: str, select_mode: SelectType) -> list[int]:
         raw_data = self.select_by_user(user_id)
         result = list()

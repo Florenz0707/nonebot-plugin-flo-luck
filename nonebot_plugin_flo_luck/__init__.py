@@ -1,17 +1,10 @@
 # ------------------------ import ------------------------
 # import packages from python
-from pathlib import Path
 import random
 from .database import *
-from .config import Config
 
 # import packages from nonebot or other plugins
-from nonebot import (
-    get_plugin_config,
-    load_plugins,
-    require
-)
-
+from nonebot import load_plugins, require
 from nonebot.plugin import PluginMetadata, inherit_supported_adapters
 from nonebot.permission import SUPERUSER
 
@@ -32,13 +25,10 @@ __plugin_meta__ = PluginMetadata(
     supported_adapters=inherit_supported_adapters(
         "nonebot_plugin_alconna", "nonebot_plugin_uninfo"
     ),
-    config=Config,
     extra={
         "author": "florenz0707",
     }
 )
-
-config = get_plugin_config(Config)
 
 sub_plugins = load_plugins(
     str(Path(__file__).parent.joinpath("plugins").resolve())
@@ -47,7 +37,6 @@ sub_plugins = load_plugins(
 luck_conn = LuckDataBase()
 sp_conn = SpecialDataBase()
 
-# luck value tips
 # format: (val: int, short_info: str, (long_info_1: str, long_info_2, ...))
 luck_info = (
     (0, "最凶",
@@ -142,6 +131,7 @@ jrrp_week = on_alconna("jrrp.week", use_cmd_start=True, block=True, priority=5)
 jrrp_month = on_alconna("jrrp.month", use_cmd_start=True, block=True, priority=5)
 jrrp_year = on_alconna("jrrp.year", use_cmd_start=True, block=True, priority=5)
 jrrp_all = on_alconna("jrrp.all", use_cmd_start=True, block=True, priority=5)
+jrrp_rank = on_alconna("jrrp.rank", use_cmd_start=True, block=True, priority=5)
 jrrp_add = on_alconna(
     Alconna(
         "jrrp.add",
@@ -230,6 +220,19 @@ async def jrrp_all_handler(session: Uninfo):
     else:
         message = f" 您总共有{days}条记录，平均幸运值为{average:.2f}。"
     await UniMessage.text(message).finish(at_sender=True)
+
+
+@jrrp_rank.handle()
+async def jrrp_rank_handler(session: Uninfo):
+    user_id = session.user.id
+    if luck_conn.select_by_user_date(user_id) == -1:
+        await UniMessage.text(" 您今日还没有幸运值哦~先开启幸运值再查看排名吧！").finish(at_sender=True)
+    today_total = luck_conn.select_by_date()
+    today_total.sort(key=(lambda item: item[1]), reverse=True)
+    for index in range(len(today_total)):
+        if today_total[index][0] == user_id:
+            await UniMessage.text(f" 您的幸运值是{today_total[index][1]}，"
+                                  f"在今日的排名中目前位于 {index + 1} / {len(today_total)}。").finish()
 
 
 @jrrp_add.handle()
