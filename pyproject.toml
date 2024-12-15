@@ -9,6 +9,22 @@ requires-python = ">=3.9, <4.0"
 adapters = [
     { name = "OneBot V11", module_name = "nonebot.adapters.onebot.v11" }
 ]
-plugins = ["nonebot_plugin_alconna"]
-plugin_dirs = ["nonebot_plugin_flo_luck/plugins"]
+plugins = ["nonebot_plugin_alconna", "nonebot_plugin_uninfo"]
+plugin_dirs = ["nonebot_plugin_flo_luck"]
 builtin_plugins = []
+
+[tool.poetry]
+name = "nonebot-plugin-flo-luck"
+version = "0.1.0"
+description = ""
+authors = ["florenz <florenz@tju.edu.cn>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
