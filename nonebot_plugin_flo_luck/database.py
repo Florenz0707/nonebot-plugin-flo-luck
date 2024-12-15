@@ -8,6 +8,10 @@ data_dir = Path("data/flo_luck").absolute()
 data_dir.mkdir(parents=True, exist_ok=True)
 
 
+def today() -> str:
+    return datetime.date.today().strftime("%y%m%d")
+
+
 class SelectType(Enum):
     BY_WEEK = 0
     BY_MONTH = 1
@@ -15,24 +19,21 @@ class SelectType(Enum):
     BY_NONE = 3
 
 
-def today() -> str:
-    return datetime.date.today().strftime("%y%m%d")
-
-
-class DataBase:
+class LuckDataBase:
     def __init__(self):
-        self.luck_db = sqlite3.connect("data/flo_luck/database.db")
+        self.luck_db = sqlite3.connect("data/flo_luck/flo_luck.db")
         self.cursor = self.luck_db.cursor()
         try:
             create_table = """
-            CREATE TABLE IF NOT EXISTS luck_data
+            create table if not exists luck_data
             (user_id text,
             date     text,
             val      int);
             """
             self.cursor.execute(create_table)
+            self.luck_db.commit()
         except sqlite3.Error as error:
-            logger.error(f"create luck_data db failed: {str(error)}")
+            logger.error(f"create table luck_data in flo_luck.db failed: {str(error)}")
 
     def __del__(self):
         self.cursor.close()
@@ -85,7 +86,65 @@ class DataBase:
                 flag = (today_string.year == res_string.year)
             else:
                 flag = True
+
             if flag:
                 result.append(val)
 
         return result
+
+
+class SpecialDataBase:
+    def __init__(self):
+        self.luck_db = sqlite3.connect("data/flo_luck/flo_luck.db")
+        self.cursor = self.luck_db.cursor()
+        try:
+            create_table = """
+                    create table if not exists special_data
+                    (user_id text,
+                    greeting text,
+                    bottom   int,
+                    top      int,
+                    primary key(user_id)
+                    )
+                    """
+            self.cursor.execute(create_table)
+            self.luck_db.commit()
+        except sqlite3.Error as error:
+            logger.error(f"create table special_data in luck.db failed: {str(error)}")
+
+    def __del__(self):
+        self.cursor.close()
+        self.luck_db.close()
+
+    def insert(self, user_id: str, greeting: str = "", bottom: int = 0, top: int = 100) -> bool:
+        try:
+            self.cursor.execute(
+                "insert into special_data (user_id, greeting, bottom, top) values (?, ?, ?, ?)",
+                (user_id, greeting, bottom, top)
+            )
+        except sqlite3.IntegrityError as error:
+            logger.error(f"Error occurs when inserted into where user_id = {user_id}. Info: {str(error)}")
+            return False
+        else:
+            self.luck_db.commit()
+            return True
+
+    def remove(self, user_id: str) -> None:
+        self.cursor.execute(
+            "delete from special_data where user_id = ?",
+            (user_id,)
+        )
+        self.luck_db.commit()
+
+    def select_by_user(self, user_id: str) -> list:
+        self.cursor.execute(
+            "select greeting, bottom, top from special_data where user_id = ?",
+            (user_id,)
+        )
+        return self.cursor.fetchone()
+
+    def select_all(self) -> list:
+        self.cursor.execute(
+            "select user_id, greeting, bottom, top from special_data"
+        )
+        return self.cursor.fetchall()
