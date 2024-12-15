@@ -16,13 +16,16 @@ builtin_plugins = []
 [tool.poetry]
 name = "nonebot-plugin-flo-luck"
 version = "0.1.0"
-description = ""
+description = "nonebot plugin for today's luck."
 authors = ["florenz <florenz@tju.edu.cn>"]
 license = "MIT"
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "^3.9"
+nonebot2 = ">=2.4.0"
+nonebot-plugin-alconna = ">=0.54.1"
+nonebot-plugin-uninfo = ">=0.6.2"
 
 
 [build-system]
