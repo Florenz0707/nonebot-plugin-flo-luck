@@ -22,7 +22,7 @@ __plugin_meta__ = PluginMetadata(
     description="Florenz 版本的 jrrp， 主要追加了特殊列表与排行功能。",
     usage="""==============用户使用==============
     1> jrrp 查看今日幸运值。
-    2> jrrp.today 查看今日大家的平均幸运值
+    2> jrrp.today 查看今日大家的平均幸运值。
     3> jrrp.week (month|year|all) 查看平均幸运值。
     4> jrrp.rank 查看自己的幸运值在今日的排行。
     ============超级用户使用============
@@ -30,7 +30,7 @@ __plugin_meta__ = PluginMetadata(
        将QQ号为user_id的用户加入特殊列表，问候语为greeting，幸运值取值为[bottom, top]。
        默认无问候语，取值[0, 100]。
     6> jrrp.del user_id 将用户移出特殊列表。
-    7> jrrp.check 查看当前特殊列表信息
+    7> jrrp.check 查看特殊列表信息
     """,
     homepage="https://github.com/Florenz0707/nonebot-plugin-flo-luck",
     type="application",
