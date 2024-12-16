@@ -1,15 +1,11 @@
-import datetime
 import sqlite3
+from .helper_functions import *
 from enum import Enum
 from nonebot.log import logger
 from pathlib import Path
 
 data_dir = Path("data/flo_luck").absolute()
 data_dir.mkdir(parents=True, exist_ok=True)
-
-
-def today() -> str:
-    return datetime.date.today().strftime("%y%m%d")
 
 
 class SelectType(Enum):
@@ -23,6 +19,7 @@ class LuckDataBase:
     def __init__(self):
         self.luck_db = sqlite3.connect("data/flo_luck/flo_luck.db")
         self.cursor = self.luck_db.cursor()
+        self.ave_id = "average"  # 特殊user_id，用于记录每日平均值
         try:
             create_table = """
             create table if not exists luck_data
@@ -44,6 +41,7 @@ class LuckDataBase:
             "insert into luck_data (user_id, date, val) values (?, ?, ?)",
             (user_id, date, val))
         self.luck_db.commit()
+        self.update_average()
 
     def remove(self, user_id: str, date: str) -> None:
         self.cursor.execute(
@@ -98,6 +96,20 @@ class LuckDataBase:
                 result.append(val)
 
         return result
+
+    def update_average(self) -> None:
+        if self.select_by_user_date(self.ave_id) == -1:
+            # 当日还未创建平均值记录
+            self.insert(self.ave_id, 0)
+        values = [pair[1] for pair in self.select_by_date()]
+        self.cursor.execute(
+            "update luck_data set val = ? where user_id = ? and date = ?",
+            (int(get_average(values)[1]), self.ave_id, today())
+        )
+        self.luck_db.commit()
+
+    def select_average(self, date: str = today()) -> int:
+        return self.select_by_user_date(self.ave_id, date)
 
 
 class SpecialDataBase:
