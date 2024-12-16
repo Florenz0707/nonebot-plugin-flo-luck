@@ -3,6 +3,7 @@
 
 # project data
 data/
+.idea/
 
 ### Python ###
 # Byte-compiled / optimized / DLL files
