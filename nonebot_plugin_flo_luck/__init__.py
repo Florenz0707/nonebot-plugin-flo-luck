@@ -97,12 +97,14 @@ async def jrrp_handler(session: Uninfo):
         luck_val = luck_generator(user_id, bottom, top)
         luck_conn.insert(user_id, luck_val)
     short_info, long_info = luck_tip(luck_val)
-    await UniMessage.text(f' 您今日的幸运值为{luck_val}， 为"{short_info}"。{long_info}').finish(at_sender=True)
+    await UniMessage.text(f" 您今日的幸运值为{luck_val}， 为\"{short_info}\"。{long_info}").finish(at_sender=True)
 
 
 @jrrp_today.handle()
 async def jrrp_today_handler():
     val = luck_conn.select_average()
+    if val == -1:
+        await UniMessage.text(f" 啊嘞？今日还没有人获取幸运值哦~快来成为第一个吧！").finish(at_sender=True)
     await UniMessage.text(f" 今日大家的平均幸运值是{val}哦~").finish(at_sender=True)
 
 

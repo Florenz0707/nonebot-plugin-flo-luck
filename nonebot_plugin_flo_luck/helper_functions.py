@@ -1,11 +1,14 @@
 import datetime
 import random
 
-# format:
+"""
+Helper functions that project uses.
+"""
+
 # (val: int, short_info: str,
 # (long_info_1: str,
 #  long_info_2: str,
-#  ...))
+#  ...              ))
 luck_info = (
     (0, "最凶",
      ("要不今天咱们就在床上躲一会吧...害怕...",
@@ -67,16 +70,25 @@ luck_info = (
       "好...好强！好事都会降临在你身边哦！",
       "哇哦！你的幸运值已经达到了宇宙的极限！仿佛被全世界的幸福和美好所包围！",
       "恭喜你成为宇宙间最幸运的人！愿你的未来永远如同神话般绚烂多彩，好运与你同在！")),
-    (0xff, "？？？",
-     ("？？？", "？？？"))
+    (0xff, "No way to reach here",
+     ("How u reach here", ))
 )
 
 
 def today() -> str:
+    """
+    Get today's date - 2024.7.7 -> 240707
+    :return: format date_string
+    """
     return datetime.date.today().strftime("%y%m%d")
 
 
 def luck_tip(val: int) -> tuple[str, str]:
+    """
+    Select info from luck_info according to luck_val
+    :param val: luck_val
+    :return: (short_info, long_info)
+    """
     for index in range(len(luck_info) - 1):
         if luck_info[index][0] <= val < luck_info[index + 1][0]:
             return luck_info[index][1], random.choice(luck_info[index][2])
@@ -85,12 +97,25 @@ def luck_tip(val: int) -> tuple[str, str]:
 
 
 def luck_generator(user_id: str, bottom: int = 0, top: int = 100) -> int:
+    """
+    Generate random luck_val at [bottom, top],
+    Seed related with user_id and today's date
+    :param user_id:
+    :param bottom:
+    :param top:
+    :return: luck_val
+    """
     rand = random.Random()
     rand.seed(int(today()) + int(user_id) * random.randint(0, 6))
     return rand.randint(bottom, top)
 
 
 def get_average(values: list) -> tuple[int, float]:
+    """
+    Calculate average value of values
+    :param values:
+    :return: (list length, average value)
+    """
     days = len(values)
     average = sum(values) / days
     return days, average

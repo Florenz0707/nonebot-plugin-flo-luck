@@ -1,7 +1,7 @@
 [project]
 name = "nonebot-plugin-flo-luck"
-version = "0.1.2"
-description = "nonebot-plugin-flo-luck"
+version = "0.1.3"
+description = "nonebot plugin for today's luck"
 readme = "README.md"
 requires-python = ">=3.9, <4.0"
 

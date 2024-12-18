@@ -8,6 +8,13 @@ data_dir = Path("data/flo_luck").absolute()
 data_dir.mkdir(parents=True, exist_ok=True)
 
 
+"""
+Define database including
+LuckDataBase storing luck_val using user_id, date & val,
+SpecialDataBase storing special list using user_id, greeting, bottom & top.
+"""
+
+
 class SelectType(Enum):
     BY_WEEK = 0
     BY_MONTH = 1
@@ -19,7 +26,7 @@ class LuckDataBase:
     def __init__(self):
         self.luck_db = sqlite3.connect("data/flo_luck/flo_luck.db")
         self.cursor = self.luck_db.cursor()
-        self.ave_id = "average"  # 特殊user_id，用于记录每日平均值
+        self.ave_id = "average"  # special user_id for today average
         try:
             create_table = """
             create table if not exists luck_data
@@ -41,9 +48,11 @@ class LuckDataBase:
             "insert into luck_data (user_id, date, val) values (?, ?, ?)",
             (user_id, date, val))
         self.luck_db.commit()
+        # After insert, update average to avoid frequent access
         self.update_average()
 
     def remove(self, user_id: str, date: str) -> None:
+        # Not use in actually running, reserved for debug
         self.cursor.execute(
             "delete from luck_data where user_id = ? and date = ?",
             (user_id, date)
@@ -51,6 +60,8 @@ class LuckDataBase:
         self.luck_db.commit()
 
     def select_by_user_date(self, user_id: str, date: str = today()) -> int:
+        # select val via user_id and date, most possibly only one record
+        # if not exist, return -1
         self.cursor.execute(
             "select val from luck_data where user_id = ? and date = ?",
             (user_id, date)
@@ -60,7 +71,8 @@ class LuckDataBase:
             return -1
         return result[0]
 
-    def select_by_user(self, user_id: str) -> list[str, int]:
+    def select_by_user(self, user_id: str) -> list[tuple[str, int]]:
+        # select (date, val) via user_id
         self.cursor.execute(
             "select date, val from luck_data where user_id = ?",
             (user_id,)
@@ -69,14 +81,18 @@ class LuckDataBase:
         return result
 
     def select_by_date(self, date: str = today()) -> list[tuple[str, int]]:
+        # select (user_id, val) via date
         self.cursor.execute(
-            "select user_id, val from luck_data where date = ?",
-            (date,)
+            "select user_id, val from luck_data where date = ? and user_id != ?",
+            (date, self.ave_id)
         )
         return self.cursor.fetchall()
 
     def select_by_range(self, user_id: str, select_mode: SelectType) -> list[int]:
+        # select a specific time range via user_id
         raw_data = self.select_by_user(user_id)
+        if select_mode == SelectType.BY_NONE:
+            return [val for date, val in raw_data]
         result = list()
         today_string = datetime.datetime.strptime(today(), "%y%m%d")
         for date, val in raw_data:
@@ -90,7 +106,7 @@ class LuckDataBase:
             elif select_mode == SelectType.BY_YEAR:
                 flag = (today_string.year == res_string.year)
             else:
-                flag = True
+                flag = False
 
             if flag:
                 result.append(val)
@@ -98,10 +114,17 @@ class LuckDataBase:
         return result
 
     def update_average(self) -> None:
+        # should not be called by instance, but relatively by insert
         if self.select_by_user_date(self.ave_id) == -1:
-            # 当日还未创建平均值记录
-            self.insert(self.ave_id, 0)
-        values = [pair[1] for pair in self.select_by_date()]
+            # no average record for today, insert a record first
+            self.cursor.execute(
+                "insert into luck_data (user_id, date, val) values (?, ?, ?)",
+                (self.ave_id, today(), 0)
+            )
+            # to avoid calling update again, don't use insert
+            self.luck_db.commit()
+
+        values = [val for user_id, val in self.select_by_date()]
         self.cursor.execute(
             "update luck_data set val = ? where user_id = ? and date = ?",
             (int(get_average(values)[1]), self.ave_id, today())
@@ -127,9 +150,10 @@ class SpecialDataBase:
                     )
                     """
             self.cursor.execute(create_table)
-            self.luck_db.commit()
         except sqlite3.Error as error:
             logger.error(f"create table special_data in luck.db failed: {str(error)}")
+        else:
+            self.luck_db.commit()
 
     def __del__(self):
         self.cursor.close()
