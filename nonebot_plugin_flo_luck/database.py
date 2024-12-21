@@ -2,11 +2,14 @@ import sqlite3
 from .helper_functions import *
 from enum import Enum
 from nonebot.log import logger
+from nonebot import require
 from pathlib import Path
 
-data_dir = Path("data/flo_luck").absolute()
-data_dir.mkdir(parents=True, exist_ok=True)
+require("nonebot_plugin_localstore")
+import nonebot_plugin_localstore as localstore
 
+plugin_data_dir: Path = localstore.get_plugin_data_dir()
+plugin_data_file: Path = localstore.get_plugin_data_file("flo_luck.db")
 
 """
 Define database including
@@ -24,7 +27,7 @@ class SelectType(Enum):
 
 class LuckDataBase:
     def __init__(self):
-        self.luck_db = sqlite3.connect("data/flo_luck/flo_luck.db")
+        self.luck_db = sqlite3.connect(plugin_data_file)
         self.cursor = self.luck_db.cursor()
         self.ave_id = "average"  # special user_id for today average
         try:
@@ -137,7 +140,7 @@ class LuckDataBase:
 
 class SpecialDataBase:
     def __init__(self):
-        self.luck_db = sqlite3.connect("data/flo_luck/flo_luck.db")
+        self.luck_db = sqlite3.connect(plugin_data_file)
         self.cursor = self.luck_db.cursor()
         try:
             create_table = """

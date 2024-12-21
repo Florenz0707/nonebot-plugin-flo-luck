@@ -9,13 +9,13 @@ requires-python = ">=3.9, <4.0"
 adapters = [
     { name = "OneBot V11", module_name = "nonebot.adapters.onebot.v11" }
 ]
-plugins = ["nonebot_plugin_alconna", "nonebot_plugin_uninfo"]
+plugins = ["nonebot_plugin_alconna", "nonebot_plugin_uninfo", "nonebot_plugin_localstore"]
 plugin_dirs = ["nonebot_plugin_flo_luck"]
 builtin_plugins = []
 
 [tool.poetry]
 name = "nonebot-plugin-flo-luck"
-version = "0.1.2"
+version = "0.1.3"
 description = "nonebot plugin for today's luck."
 authors = ["florenz <florenz@tju.edu.cn>"]
 license = "MIT"

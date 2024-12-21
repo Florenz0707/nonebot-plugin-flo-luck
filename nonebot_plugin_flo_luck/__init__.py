@@ -103,6 +103,7 @@ async def jrrp_handler(session: Uninfo):
 @jrrp_today.handle()
 async def jrrp_today_handler():
     val = luck_conn.select_average()
+    # Today's record empty
     if val == -1:
         await UniMessage.text(f" 啊嘞？今日还没有人获取幸运值哦~快来成为第一个吧！").finish(at_sender=True)
     await UniMessage.text(f" 今日大家的平均幸运值是{val}哦~").finish(at_sender=True)
@@ -166,7 +167,7 @@ async def jrrp_rank_handler(session: Uninfo):
     for index in range(len(today_total)):
         if today_total[index][0] == user_id:
             await UniMessage.text(f" 您的幸运值是{today_total[index][1]}，"
-                                  f"在今日的排名中目前位于 {index + 1} / {len(today_total)}。").finish()
+                                  f"在今日的排名中目前位于 {index + 1} / {len(today_total)}。").finish(at_sender=True)
 
 
 @jrrp_add.handle()
