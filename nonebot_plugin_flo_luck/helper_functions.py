@@ -8,7 +8,7 @@ Helper functions that project uses.
 # (val: int, short_info: str,
 # (long_info_1: str,
 #  long_info_2: str,
-#  ...              ))
+#  ......           ))
 luck_info = (
     (0, "最凶",
      ("要不今天咱们就在床上躲一会吧...害怕...",

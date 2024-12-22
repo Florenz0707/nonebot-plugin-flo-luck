@@ -81,6 +81,7 @@ jrrp_del = on_alconna(
     permission=SUPERUSER
 )
 jrrp_check = on_alconna("jrrp.check", use_cmd_start=True, block=True, priority=5, permission=SUPERUSER)
+jrrp_help = on_alconna("jrrp.help", aliases={"jrrp.menu"}, use_cmd_start=True, block=True, priority=5)
 
 
 # command functions
@@ -179,8 +180,8 @@ async def jrrp_add_handler(
     if user_id.available and greeting.available and bottom.available and top.available:
         user_id = user_id.result
         greeting = greeting.result
-        bottom = min(bottom.result, 0)
-        top = max(top.result, 100)
+        bottom = max(bottom.result, 0)
+        top = min(top.result, 100)
         if sp_conn.insert(user_id, greeting, bottom, top):
             message = f"""
 成功插入数据：
@@ -229,3 +230,14 @@ bottom: {item[2]},
 top: {item[3]}
 """
         await UniMessage.text(message).finish(at_sender=True)
+
+
+@jrrp_help.handle()
+async def jrrp_help_handler():
+    message = """
+1> jrrp 查看今日幸运值。
+2> jrrp.today 查看今日大家的平均幸运值。
+3> jrrp.week (month|year|all) 查看平均幸运值。
+4> jrrp.rank 查看自己的幸运值在今日的排行。
+    """
+    await UniMessage.text(message).finish(at_sender=True)
