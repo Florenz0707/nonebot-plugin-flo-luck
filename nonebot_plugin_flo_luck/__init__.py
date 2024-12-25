@@ -88,7 +88,7 @@ jrrp_help = on_alconna("jrrp.help", aliases={"jrrp.menu"}, use_cmd_start=True, b
 @jrrp.handle()
 async def jrrp_handler(session: Uninfo):
     user_id = session.user.id
-    luck_val = luck_conn.select_by_user_date(user_id)
+    luck_val = luck_conn.select_by_user_date(user_id, today())
     bottom, top = 0, 100
     if (info := sp_conn.select_by_user(user_id)) is not None:
         bottom, top = info[1], info[2]
@@ -96,14 +96,14 @@ async def jrrp_handler(session: Uninfo):
             await UniMessage.text(info[0]).send()
     if luck_val == -1:
         luck_val = luck_generator(user_id, bottom, top)
-        luck_conn.insert(user_id, luck_val)
+        luck_conn.insert(user_id, luck_val, today())
     short_info, long_info = luck_tip(luck_val)
     await UniMessage.text(f" 您今日的幸运值为{luck_val}， 为\"{short_info}\"。{long_info}").finish(at_sender=True)
 
 
 @jrrp_today.handle()
 async def jrrp_today_handler():
-    val = luck_conn.select_average()
+    val = luck_conn.select_average(today())
     # Today's record empty
     if val == -1:
         await UniMessage.text(f" 啊嘞？今日还没有人获取幸运值哦~快来成为第一个吧！").finish(at_sender=True)
@@ -161,9 +161,9 @@ async def jrrp_all_handler(session: Uninfo):
 @jrrp_rank.handle()
 async def jrrp_rank_handler(session: Uninfo):
     user_id = session.user.id
-    if luck_conn.select_by_user_date(user_id) == -1:
+    if luck_conn.select_by_user_date(user_id, today()) == -1:
         await UniMessage.text(" 您今日还没有幸运值哦~先开启幸运值再查看排名吧！").finish(at_sender=True)
-    today_total = luck_conn.select_by_date()
+    today_total = luck_conn.select_by_date(today())
     today_total.sort(key=(lambda item: item[1]), reverse=True)
     for index in range(len(today_total)):
         if today_total[index][0] == user_id:
@@ -238,6 +238,5 @@ async def jrrp_help_handler():
 1> jrrp 查看今日幸运值。
 2> jrrp.today 查看今日大家的平均幸运值。
 3> jrrp.week (month|year|all) 查看平均幸运值。
-4> jrrp.rank 查看自己的幸运值在今日的排行。
-    """
+4> jrrp.rank 查看自己的幸运值在今日的排行。"""
     await UniMessage.text(message).finish(at_sender=True)

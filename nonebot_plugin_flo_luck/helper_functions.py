@@ -80,7 +80,7 @@ def today() -> str:
     Get today's date - 2024.7.7 -> 240707
     :return: format date_string
     """
-    return datetime.date.today().strftime("%y%m%d")
+    return datetime.datetime.now().strftime("%y%m%d")
 
 
 def luck_tip(val: int) -> tuple[str, str]:

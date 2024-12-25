@@ -46,7 +46,7 @@ class LuckDataBase:
         self.cursor.close()
         self.luck_db.close()
 
-    def insert(self, user_id: str, val: int, date: str = today()) -> None:
+    def insert(self, user_id: str, val: int, date: str) -> None:
         self.cursor.execute(
             "insert into luck_data (user_id, date, val) values (?, ?, ?)",
             (user_id, date, val))
@@ -62,7 +62,7 @@ class LuckDataBase:
         )
         self.luck_db.commit()
 
-    def select_by_user_date(self, user_id: str, date: str = today()) -> int:
+    def select_by_user_date(self, user_id: str, date: str) -> int:
         # select val via user_id and date, most possibly only one record
         # if not exist, return -1
         self.cursor.execute(
@@ -83,7 +83,7 @@ class LuckDataBase:
         result = self.cursor.fetchall()
         return result
 
-    def select_by_date(self, date: str = today()) -> list[tuple[str, int]]:
+    def select_by_date(self, date: str) -> list[tuple[str, int]]:
         # select (user_id, val) via date
         self.cursor.execute(
             "select user_id, val from luck_data where date = ? and user_id != ?",
@@ -118,7 +118,7 @@ class LuckDataBase:
 
     def update_average(self) -> None:
         # should not be called by instance, but relatively by insert
-        if self.select_by_user_date(self.ave_id) == -1:
+        if self.select_by_user_date(self.ave_id, today()) == -1:
             # no average record for today, insert a record first
             self.cursor.execute(
                 "insert into luck_data (user_id, date, val) values (?, ?, ?)",
@@ -127,14 +127,14 @@ class LuckDataBase:
             # to avoid calling update again, don't use insert
             self.luck_db.commit()
 
-        values = [val for user_id, val in self.select_by_date()]
+        values = [val for user_id, val in self.select_by_date(today())]
         self.cursor.execute(
             "update luck_data set val = ? where user_id = ? and date = ?",
             (int(get_average(values)[1]), self.ave_id, today())
         )
         self.luck_db.commit()
 
-    def select_average(self, date: str = today()) -> int:
+    def select_average(self, date: str) -> int:
         return self.select_by_user_date(self.ave_id, date)
 
 
