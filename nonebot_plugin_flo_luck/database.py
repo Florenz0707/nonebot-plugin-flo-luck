@@ -144,19 +144,18 @@ class SpecialDataBase:
         self.cursor = self.luck_db.cursor()
         try:
             create_table = """
-                    create table if not exists special_data
-                    (user_id text,
-                    greeting text,
-                    bottom   int,
-                    top      int,
-                    primary key(user_id)
+                    create table if not exists special_data(
+                        user_id     text,
+                        greeting    text,
+                        bottom      int,
+                        top         int,
+                        primary key(user_id)
                     )
                     """
             self.cursor.execute(create_table)
+            self.luck_db.commit()
         except sqlite3.Error as error:
             logger.error(f"create table special_data in luck.db failed: {str(error)}")
-        else:
-            self.luck_db.commit()
 
     def __del__(self):
         self.cursor.close()
@@ -168,23 +167,42 @@ class SpecialDataBase:
                 "insert into special_data (user_id, greeting, bottom, top) values (?, ?, ?, ?)",
                 (user_id, greeting, bottom, top)
             )
-        except sqlite3.IntegrityError as error:
-            logger.error(f"Error occurs when inserted into where user_id = {user_id}. Info: {str(error)}")
+            self.luck_db.commit()
+        except sqlite3.Error as error:
+            logger.error(f"Error occurs when insert into special_data where user_id = {user_id}. Info: {str(error)}")
             return False
         else:
-            self.luck_db.commit()
             return True
 
-    def remove(self, user_id: str) -> None:
-        self.cursor.execute(
-            "delete from special_data where user_id = ?",
-            (user_id,)
-        )
-        self.luck_db.commit()
+    def update(self, user_id: str, greeting: str = "", bottom: int = 0, top: int = 100) -> bool:
+        try:
+            self.cursor.execute(
+                "update special_data set greeting = ?, bottom = ?, top = ? where user_id = ?",
+                (greeting, bottom, top, user_id)
+            )
+            self.luck_db.commit()
+        except sqlite3.Error as error:
+            logger.error(f"Error occurs when update special_data where user_id = {user_id}. Info: {str(error)}")
+            return False
+        else:
+            return True
+
+    def remove(self, user_id: str) -> bool:
+        try:
+            self.cursor.execute(
+                "delete from special_data where user_id = ?",
+                (user_id,)
+            )
+            self.luck_db.commit()
+        except sqlite3.Error as error:
+            logger.error(f"Error occurs when delete from special_data where user_id = {user_id}. Info: {str(error)}")
+            return False
+        else:
+            return True
 
     def select_by_user(self, user_id: str) -> list:
         self.cursor.execute(
-            "select greeting, bottom, top from special_data where user_id = ?",
+            "select user_id, greeting, bottom, top from special_data where user_id = ?",
             (user_id,)
         )
         return self.cursor.fetchone()

@@ -19,8 +19,9 @@ from nonebot_plugin_uninfo import Uninfo
 
 __plugin_meta__ = PluginMetadata(
     name="nonebot-plugin-flo-luck",
-    description="Florenz 版本的 jrrp， 主要追加了特殊列表与排行功能。",
-    usage="""==============用户使用==============
+    description="Florenz版本的 jrrp，主要追加了特殊列表与排行功能。",
+    usage="""
+    ==============用户使用==============
     1> jrrp 查看今日幸运值。
     2> jrrp.today 查看今日大家的平均幸运值。
     3> jrrp.week (month|year|all) 查看平均幸运值。
@@ -91,9 +92,9 @@ async def jrrp_handler(session: Uninfo):
     luck_val = luck_conn.select_by_user_date(user_id, today())
     bottom, top = 0, 100
     if (info := sp_conn.select_by_user(user_id)) is not None:
-        bottom, top = info[1], info[2]
-        if info[0] != "":
-            await UniMessage.text(info[0]).send()
+        bottom, top = info[2], info[3]
+        if info[1] != "":
+            await UniMessage.text(info[1]).send()
     if luck_val == -1:
         luck_val = luck_generator(user_id, bottom, top)
         luck_conn.insert(user_id, luck_val, today())
@@ -183,37 +184,41 @@ async def jrrp_add_handler(
         bottom = max(bottom.result, 0)
         top = min(top.result, 100)
         if sp_conn.insert(user_id, greeting, bottom, top):
-            message = f"""
-成功插入数据：
-user_id: {user_id}, 
-greeting: '{greeting}', 
-bottom: {bottom}, 
-top: {top}"""
+            message = "成功插入数据：\n" \
+                      f"user_id： {user_id}\n" \
+                      f"greeting： '{greeting}'\n" \
+                      f"bottom： {bottom}\n" \
+                      f"top： {top}"
+        elif sp_conn.update(user_id, greeting, bottom, top):
+            message = "成功更新数据：\n" \
+                      f"user_id： {user_id}\n" \
+                      f"greeting： '{greeting}'\n" \
+                      f"bottom： {bottom}\n" \
+                      f"top： {top}"
         else:
             message = f" 表中已存在条目'{user_id}'，插入失败。"
     else:
-        message = " 参数无效。"
+        message = "参数无效。"
 
-    await UniMessage.text(message).finish(at_sender=True)
+    await UniMessage.text(message).finish()
 
 
 @jrrp_del.handle()
 async def jrrp_del_handler(user_id: Match[str] = AlconnaMatch("target")):
     if user_id.available:
         user_id = user_id.result
-        if (old_info := sp_conn.select_by_user(user_id)) is None:
+        if (old_info :=sp_conn.select_by_user(user_id)) is None:
             message = f" 删除失败，表中不存在条目'{user_id}'。"
         else:
             sp_conn.remove(user_id)
-            message = f"""
-删除成功，原数据：
-user_id: {user_id}, 
-greeting: '{old_info[0]}', 
-bottom: {old_info[1]}, 
-top: {old_info[2]}"""
+            message = f"删除成功，原数据：\n" \
+                      f"user_id： {user_id} \n" \
+                      f"greeting： '{old_info[0]}'\n" \
+                      f"bottom： {old_info[1]}" \
+                      f"top：{old_info[2]}"
     else:
-        message = " 参数无效。"
-    await UniMessage.text(message).finish(at_sender=True)
+        message = "参数无效。"
+    await UniMessage.text(message).finish()
 
 
 @jrrp_check.handle()
@@ -223,20 +228,22 @@ async def jrrp_check_handler():
     if len(items) != 0:
         message = ""
         for item in items:
-            message += f"""
-user_id: {item[0]},
-greeting: '{item[1]}',
-bottom: {item[2]},
-top: {item[3]}
-"""
+            message += f"user_id： {item[0]}\n" \
+                       f"greeting： '{item[1]}'\n" \
+                       f"bottom： {item[2]}\n" \
+                       f"top： {item[3]}\n"
         await UniMessage.text(message).finish(at_sender=True)
 
 
 @jrrp_help.handle()
 async def jrrp_help_handler():
     message = """
-1> jrrp 查看今日幸运值。
-2> jrrp.today 查看今日大家的平均幸运值。
-3> jrrp.week (month|year|all) 查看平均幸运值。
-4> jrrp.rank 查看自己的幸运值在今日的排行。"""
+1 > jrrp
+查看今日幸运值。
+2 > jrrp.today
+查看今日大家的平均幸运值。
+3 > jrrp.week(month | year | all)
+查看平均幸运值。
+4 > jrrp.rank
+查看自己的幸运值在今日的排行。"""
     await UniMessage.text(message).finish(at_sender=True)
