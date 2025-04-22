@@ -79,4 +79,4 @@ Florenz 版本的 jrrp。主要追加了特殊列表与排行功能。
 ### 其他
 大部分代码源于：[nonebot-plugin-jrrp2](https://github.com/Rene8028/nonebot_plugin_jrrp2)  
 本插件主要增加了特殊列表与排行功能  
-Version: 0.1.7
+Version: 0.1.8

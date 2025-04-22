@@ -1,6 +1,6 @@
 [project]
 name = "nonebot-plugin-flo-luck"
-version = "0.1.7"
+version = "0.1.8"
 description = "nonebot plugin for today's luck"
 readme = "README.md"
 requires-python = ">=3.9, <4.0"
@@ -15,7 +15,7 @@ builtin_plugins = []
 
 [tool.poetry]
 name = "nonebot-plugin-flo-luck"
-version = "0.1.7"
+version = "0.1.8"
 description = "nonebot plugin for today's luck."
 authors = ["florenz <florenz@tju.edu.cn>"]
 license = "MIT"
