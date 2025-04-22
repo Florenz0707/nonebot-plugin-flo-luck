@@ -178,27 +178,33 @@ async def jrrp_add_handler(
         greeting: Query[str] = Query("greeting", ""),
         bottom: Query[int] = Query("bottom", 0),
         top: Query[int] = Query("top", 100)):
-    if user_id.available and greeting.available and bottom.available and top.available:
-        user_id = user_id.result
+    if not user_id.available:
+        await UniMessage.text("参数无效。").finish()
+    user_id = user_id.result
+    info = sp_conn.select_by_user(user_id)
+    if info is None:
+        if not (greeting.available and bottom.available and top.available):
+            await UniMessage.text("参数无效。").finish()
+
         greeting = greeting.result
-        bottom = max(bottom.result, 0)
-        top = min(top.result, 100)
-        if sp_conn.insert(user_id, greeting, bottom, top):
-            message = "成功插入数据：\n" \
-                      f"user_id： {user_id}\n" \
-                      f"greeting： '{greeting}'\n" \
-                      f"bottom： {bottom}\n" \
-                      f"top： {top}"
-        elif sp_conn.update(user_id, greeting, bottom, top):
-            message = "成功更新数据：\n" \
-                      f"user_id： {user_id}\n" \
-                      f"greeting： '{greeting}'\n" \
-                      f"bottom： {bottom}\n" \
-                      f"top： {top}"
-        else:
-            message = f" 表中已存在条目'{user_id}'，插入失败。"
+        bottom = bottom.result
+        top = top.result
+        sp_conn.insert(user_id, greeting, bottom, top)
+        message = "已插入条目：\n" \
+                  f"user_id： {user_id}\n" \
+                  f"greeting： '{greeting}'\n" \
+                  f"bottom： {bottom}\n" \
+                  f"top： {top}"
     else:
-        message = "参数无效。"
+        greeting = greeting.result if greeting.available else info[1]
+        bottom = bottom.result if bottom.available else info[2]
+        top = top.result if top.available else info[3]
+        sp_conn.update(user_id, greeting, bottom, top)
+        message = "已更新条目：\n" \
+                  f"user_id： {user_id}\n" \
+                  f"greeting： '{greeting}'\n" \
+                  f"bottom： {bottom}\n" \
+                  f"top： {top}"
 
     await UniMessage.text(message).finish()
 
@@ -207,7 +213,7 @@ async def jrrp_add_handler(
 async def jrrp_del_handler(user_id: Match[str] = AlconnaMatch("target")):
     if user_id.available:
         user_id = user_id.result
-        if (old_info :=sp_conn.select_by_user(user_id)) is None:
+        if (old_info := sp_conn.select_by_user(user_id)) is None:
             message = f" 删除失败，表中不存在条目'{user_id}'。"
         else:
             sp_conn.remove(user_id)
@@ -224,15 +230,14 @@ async def jrrp_del_handler(user_id: Match[str] = AlconnaMatch("target")):
 @jrrp_check.handle()
 async def jrrp_check_handler():
     items = sp_conn.select_all()
-    await UniMessage.text(f"共有{len(items)}条数据。").send()
-    if len(items) != 0:
-        message = ""
+    if items is not None:
+        message = f"共有{len(items)}条数据。"
         for item in items:
-            message += f"user_id： {item[0]}\n" \
+            message += f"\n\nuser_id： {item[0]}\n" \
                        f"greeting： '{item[1]}'\n" \
                        f"bottom： {item[2]}\n" \
-                       f"top： {item[3]}\n"
-        await UniMessage.text(message).finish(at_sender=True)
+                       f"top： {item[3]}"
+        await UniMessage.text(message).finish()
 
 
 @jrrp_help.handle()
