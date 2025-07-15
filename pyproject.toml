@@ -1,6 +1,6 @@
 [project]
 name = "nonebot-plugin-flo-luck"
-version = "0.1.8"
+version = "0.1.9"
 description = "nonebot plugin for today's luck"
 readme = "README.md"
 requires-python = ">=3.9, <4.0"
@@ -9,13 +9,13 @@ requires-python = ">=3.9, <4.0"
 adapters = [
     { name = "OneBot V11", module_name = "nonebot.adapters.onebot.v11" }
 ]
-plugins = ["nonebot_plugin_alconna", "nonebot_plugin_uninfo", "nonebot_plugin_localstore"]
-plugin_dirs = ["nonebot_plugin_flo_luck"]
+plugins = ["nonebot_plugin_alconna", "nonebot_plugin_uninfo", "nonebot_plugin_localstore", "nonebot_plugin_flo_luck"]
+plugin_dirs = []
 builtin_plugins = []
 
 [tool.poetry]
 name = "nonebot-plugin-flo-luck"
-version = "0.1.8"
+version = "0.1.9"
 description = "nonebot plugin for today's luck."
 authors = ["florenz <florenz@tju.edu.cn>"]
 license = "MIT"

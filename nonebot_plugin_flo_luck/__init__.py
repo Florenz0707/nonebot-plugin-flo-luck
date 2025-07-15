@@ -90,16 +90,17 @@ jrrp_help = on_alconna("jrrp.help", aliases={"jrrp.menu"}, use_cmd_start=True, b
 async def jrrp_handler(session: Uninfo):
     user_id = session.user.id
     luck_val = luck_conn.select_by_user_date(user_id, today())
+    message = ""
     bottom, top = 0, 100
     if (info := sp_conn.select_by_user(user_id)) is not None:
         bottom, top = info[2], info[3]
         if info[1] != "":
-            await UniMessage.text(info[1]).send()
+            message = info[1]
     if luck_val == -1:
         luck_val = luck_generator(user_id, bottom, top)
         luck_conn.insert(user_id, luck_val, today())
     short_info, long_info = luck_tip(luck_val)
-    await UniMessage.text(f" 您今日的幸运值为{luck_val}， 为\"{short_info}\"。{long_info}").finish(at_sender=True)
+    await UniMessage.text(" " + message).text(f"\n您今日的幸运值为{luck_val}， 为\"{short_info}\"。{long_info}").finish(at_sender=True)
 
 
 @jrrp_today.handle()

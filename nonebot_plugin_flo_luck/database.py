@@ -149,7 +149,7 @@ class SpecialDataBase:
                         greeting    text,
                         bottom      int,
                         top         int,
-                        primary key(user_id)
+                        primary key (user_id)
                     )
                     """
             self.cursor.execute(create_table)
