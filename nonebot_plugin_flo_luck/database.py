@@ -160,11 +160,16 @@ class SpecialDataBase:
             logger.error(f"create table new_special_data in luck.db failed: {str(error)}")
 
         try:
-            new_empty = self.cursor.execute("select * from special_data")
-            old_exist = self.cursor.execute("select * from new_special_data")
-            if new_empty is None and old_exist is not None:
-                self.cursor.execute("insert into new_special_data select * from special_data")
-                self.luck_db.commit()
+            self.cursor.execute("select * from new_special_data")
+            new_data = self.cursor.fetchall()
+            self.cursor.execute("select user_id, greeting, bottom, top from special_data")
+            old_data = self.cursor.fetchall()
+            if len(new_data) == 0 and len(old_data) != 0:
+                for user_id, greeting, bottom, top in old_data:
+                    self.cursor.execute(
+                        "insert into new_special_data (user_id, greeting, bottom, top) values (?, ?, ?, ?)",
+                        (user_id, greeting, bottom, top))
+                    self.luck_db.commit()
         except sqlite3.Error:
             pass
 
@@ -201,13 +206,13 @@ class SpecialDataBase:
         else:
             return True
 
-    def select_by_user(self, user_id: str) -> list:
+    def select_by_user(self, user_id: str) -> list | None:
         self.cursor.execute(
             "select user_id, greeting, bottom, top from new_special_data where user_id = ?",
             (user_id,)
         )
-        ret = [spdata2dict(rec) for rec in self.cursor.fetchall()]
-        return ret
+        ret = self.cursor.fetchall()
+        return None if len(ret) == 0 else [spdata2dict(rec) for rec in ret]
 
     def select_by_id(self, rec_id: int) -> dict | None:
         total = self.select_all()

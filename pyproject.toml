@@ -1,6 +1,6 @@
 [project]
 name = "nonebot-plugin-flo-luck"
-version = "0.2.0"
+version = "0.2.1"
 description = "nonebot plugin for today's luck"
 readme = "README.md"
 requires-python = ">=3.9, <4.0"
@@ -15,7 +15,7 @@ builtin_plugins = []
 
 [tool.poetry]
 name = "nonebot-plugin-flo-luck"
-version = "0.2.0"
+version = "0.2.1"
 description = "nonebot plugin for today's luck."
 authors = ["florenz <florenz@tju.edu.cn>"]
 license = "MIT"
@@ -27,3 +27,8 @@ nonebot2 = ">=2.4.0"
 nonebot-plugin-alconna = ">=0.54.1"
 nonebot-plugin-uninfo = ">=0.6.2"
 nonebot-plugin-localstore = ">=0.7.2"
+
+[[tool.poetry.source]]
+name = "tsinghua"
+url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple/"
+priority = "primary"
