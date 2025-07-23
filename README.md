@@ -25,8 +25,8 @@ _✨ NoneBot 插件: Florenz 版本的 jrrp ✨_
 
 ## 📖 介绍
 
-Florenz 版本的 jrrp。主要追加了特殊列表与排行功能。  
-列表内容：QQ号，该用户使用时发送的特别问候，该用户幸运值的下限和上限。  
+Florenz 版本的 jrrp。主要追加了特殊列表与排行功能。
+列表内容：QQ号，该用户使用时发送的特别问候，该用户幸运值的下限和上限。
 
 ## 💿 安装
 
@@ -73,10 +73,10 @@ Florenz 版本的 jrrp。主要追加了特殊列表与排行功能。
 |         jrrp.today          |    所有     |  否  | 所有 |      查看今日大家的平均幸运值。      |
 | jrrp.week  (month/year/all) |    所有     |  否  | 所有 |         查看平均幸运值         |
 |          jrrp.rank          |    所有     |  否  | 所有 |     查看自己的幸运值在当日的排行      |
-|       jrrp.add/del id       | SUPERUSER |  否  | 所有 | 从特殊列表中加入/移除该QQ  (参见元数据) |
+|       jrrp.add/del id       | SUPERUSER |  否  | 所有 | 从特殊列表中加入/移除该条目  (参见元数据) |
 |         jrrp.check          | SUPERUSER |  否  | 所有 |        查看特殊列表信息         |
 
 ### 其他
-大部分代码源于：[nonebot-plugin-jrrp2](https://github.com/Rene8028/nonebot_plugin_jrrp2)  
-本插件主要增加了特殊列表与排行功能  
-Version: 0.1.9
+大部分代码源于：[nonebot-plugin-jrrp2](https://github.com/Rene8028/nonebot_plugin_jrrp2)
+本插件主要增加了特殊列表与排行功能
+Version: 0.2.0

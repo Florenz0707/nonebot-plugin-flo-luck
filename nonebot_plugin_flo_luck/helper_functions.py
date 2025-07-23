@@ -119,3 +119,9 @@ def get_average(values: list) -> tuple[int, float]:
     days = len(values)
     average = sum(values) / days
     return days, average
+
+
+def spdata2dict(spdata: tuple) -> dict:
+    keys = ("user_id", "greeting", "bottom", "top")
+    ret = {key: val for key, val in zip(keys, spdata)}
+    return ret

@@ -32,11 +32,13 @@ class LuckDataBase:
         self.ave_id = "average"  # special user_id for today average
         try:
             create_table = """
-            create table if not exists luck_data
-            (user_id text,
-            date     text,
-            val      int);
-            """
+                           create table if not exists luck_data
+                           (
+                               user_id text,
+                               date    text,
+                               val     int
+                           ); \
+                           """
             self.cursor.execute(create_table)
             self.luck_db.commit()
         except sqlite3.Error as error:
@@ -143,19 +145,28 @@ class SpecialDataBase:
         self.luck_db = sqlite3.connect(plugin_data_file)
         self.cursor = self.luck_db.cursor()
         try:
-            create_table = """
-                    create table if not exists special_data(
-                        user_id     text,
-                        greeting    text,
-                        bottom      int,
-                        top         int,
-                        primary key (user_id)
-                    )
-                    """
-            self.cursor.execute(create_table)
+            create_new_table = """
+                               create table if not exists new_special_data
+                               (
+                                   user_id  text,
+                                   greeting text,
+                                   bottom   int,
+                                   top      int
+                               ) \
+                               """
+            self.cursor.execute(create_new_table)
             self.luck_db.commit()
         except sqlite3.Error as error:
-            logger.error(f"create table special_data in luck.db failed: {str(error)}")
+            logger.error(f"create table new_special_data in luck.db failed: {str(error)}")
+
+        try:
+            new_empty = self.cursor.execute("select * from special_data")
+            old_exist = self.cursor.execute("select * from new_special_data")
+            if new_empty is None and old_exist is not None:
+                self.cursor.execute("insert into new_special_data select * from special_data")
+                self.luck_db.commit()
+        except sqlite3.Error:
+            pass
 
     def __del__(self):
         self.cursor.close()
@@ -164,7 +175,7 @@ class SpecialDataBase:
     def insert(self, user_id: str, greeting: str = "", bottom: int = 0, top: int = 100) -> bool:
         try:
             self.cursor.execute(
-                "insert into special_data (user_id, greeting, bottom, top) values (?, ?, ?, ?)",
+                "insert into new_special_data (user_id, greeting, bottom, top) values (?, ?, ?, ?)",
                 (user_id, greeting, bottom, top)
             )
             self.luck_db.commit()
@@ -174,41 +185,39 @@ class SpecialDataBase:
         else:
             return True
 
-    def update(self, user_id: str, greeting: str = "", bottom: int = 0, top: int = 100) -> bool:
+    def remove(self, rec_id: int) -> bool:
         try:
+            data = self.select_by_id(rec_id)
+            if data is None:
+                return False
             self.cursor.execute(
-                "update special_data set greeting = ?, bottom = ?, top = ? where user_id = ?",
-                (greeting, bottom, top, user_id)
+                "delete from new_special_data where user_id = ? and greeting = ? and bottom = ? and top = ?",
+                (data.get('user_id'), data.get('greeting'), data.get('bottom'), data.get('top'))
             )
             self.luck_db.commit()
         except sqlite3.Error as error:
-            logger.error(f"Error occurs when update special_data where user_id = {user_id}. Info: {str(error)}")
-            return False
-        else:
-            return True
-
-    def remove(self, user_id: str) -> bool:
-        try:
-            self.cursor.execute(
-                "delete from special_data where user_id = ?",
-                (user_id,)
-            )
-            self.luck_db.commit()
-        except sqlite3.Error as error:
-            logger.error(f"Error occurs when delete from special_data where user_id = {user_id}. Info: {str(error)}")
+            logger.error(f"Error occurs when delete from special_data where id = {rec_id}. Info: {str(error)}")
             return False
         else:
             return True
 
     def select_by_user(self, user_id: str) -> list:
         self.cursor.execute(
-            "select user_id, greeting, bottom, top from special_data where user_id = ?",
+            "select user_id, greeting, bottom, top from new_special_data where user_id = ?",
             (user_id,)
         )
-        return self.cursor.fetchone()
+        ret = [spdata2dict(rec) for rec in self.cursor.fetchall()]
+        return ret
+
+    def select_by_id(self, rec_id: int) -> dict | None:
+        total = self.select_all()
+        if rec_id <= 0 or rec_id > len(total):
+            return None
+        return total[rec_id - 1]
 
     def select_all(self) -> list:
         self.cursor.execute(
-            "select user_id, greeting, bottom, top from special_data"
+            "select user_id, greeting, bottom, top from new_special_data order by user_id"
         )
-        return self.cursor.fetchall()
+        ret = [spdata2dict(rec) for rec in self.cursor.fetchall()]
+        return ret

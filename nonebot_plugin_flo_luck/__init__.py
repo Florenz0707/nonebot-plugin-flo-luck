@@ -27,10 +27,10 @@ __plugin_meta__ = PluginMetadata(
     3> jrrp.week (month|year|all) 查看平均幸运值。
     4> jrrp.rank 查看自己的幸运值在今日的排行。
     ============超级用户使用============
-    5> jrrp.add user_id [-g greeting] [-b bottom] [-t top] 
+    5> jrrp.add user_id [-g greeting] [-b bottom] [-t top]
        将QQ号为user_id的用户加入特殊列表，问候语为greeting，幸运值取值为[bottom, top]。
        默认无问候语，取值[0, 100]。
-    6> jrrp.del user_id 将用户移出特殊列表。
+    6> jrrp.del id 将该条数据移出特殊列表。
     7> jrrp.check 查看特殊列表信息
     """,
     homepage="https://github.com/Florenz0707/nonebot-plugin-flo-luck",
@@ -74,7 +74,7 @@ jrrp_add = on_alconna(
 jrrp_del = on_alconna(
     Alconna(
         "jrrp.del",
-        Args["target?", str]
+        Args["target?", int]
     ),
     use_cmd_start=True,
     block=True,
@@ -93,14 +93,15 @@ async def jrrp_handler(session: Uninfo):
     message = ""
     bottom, top = 0, 100
     if (info := sp_conn.select_by_user(user_id)) is not None:
-        bottom, top = info[2], info[3]
-        if info[1] != "":
-            message = info[1]
+        data: dict = random.choice(info)
+        message = data.get('greeting')
+        bottom, top = data.get('bottom'), data.get('top')
     if luck_val == -1:
         luck_val = luck_generator(user_id, bottom, top)
         luck_conn.insert(user_id, luck_val, today())
     short_info, long_info = luck_tip(luck_val)
-    await UniMessage.text(" " + message).text(f"\n您今日的幸运值为{luck_val}， 为\"{short_info}\"。{long_info}").finish(at_sender=True)
+    await UniMessage.text(" " + message).text(f"\n您今日的幸运值为{luck_val}， 为\"{short_info}\"。{long_info}").finish(
+        at_sender=True)
 
 
 @jrrp_today.handle()
@@ -182,47 +183,33 @@ async def jrrp_add_handler(
     if not user_id.available:
         await UniMessage.text("参数无效。").finish()
     user_id = user_id.result
-    info = sp_conn.select_by_user(user_id)
-    if info is None:
-        if not (greeting.available and bottom.available and top.available):
-            await UniMessage.text("参数无效。").finish()
-
-        greeting = greeting.result
-        bottom = bottom.result
-        top = top.result
-        sp_conn.insert(user_id, greeting, bottom, top)
-        message = "已插入条目：\n" \
-                  f"user_id： {user_id}\n" \
-                  f"greeting： '{greeting}'\n" \
-                  f"bottom： {bottom}\n" \
-                  f"top： {top}"
-    else:
-        greeting = greeting.result if greeting.available else info[1]
-        bottom = bottom.result if bottom.available else info[2]
-        top = top.result if top.available else info[3]
-        sp_conn.update(user_id, greeting, bottom, top)
-        message = "已更新条目：\n" \
-                  f"user_id： {user_id}\n" \
-                  f"greeting： '{greeting}'\n" \
-                  f"bottom： {bottom}\n" \
-                  f"top： {top}"
-
+    if not (greeting.available and bottom.available and top.available):
+        await UniMessage.text("参数无效。").finish()
+    greeting = greeting.result
+    bottom = bottom.result
+    top = top.result
+    sp_conn.insert(user_id, greeting, bottom, top)
+    message = "已插入条目：\n" \
+              f"user_id： {user_id}\n" \
+              f"greeting： '{greeting}'\n" \
+              f"bottom： {bottom}\n" \
+              f"top： {top}"
     await UniMessage.text(message).finish()
 
 
 @jrrp_del.handle()
-async def jrrp_del_handler(user_id: Match[str] = AlconnaMatch("target")):
-    if user_id.available:
-        user_id = user_id.result
-        if (old_info := sp_conn.select_by_user(user_id)) is None:
-            message = f" 删除失败，表中不存在条目'{user_id}'。"
+async def jrrp_del_handler(rec_id: Match[int] = AlconnaMatch("target")):
+    if rec_id.available:
+        rec_id = rec_id.result
+        if (old_info := sp_conn.select_by_id(rec_id)) is None:
+            message = f" 删除失败，表中不存在条目'{rec_id}'。"
         else:
-            sp_conn.remove(user_id)
+            sp_conn.remove(rec_id)
             message = f"删除成功，原数据：\n" \
-                      f"user_id： {user_id} \n" \
-                      f"greeting： '{old_info[0]}'\n" \
-                      f"bottom： {old_info[1]}" \
-                      f"top：{old_info[2]}"
+                      f"user_id： {old_info.get('user_id')} \n" \
+                      f"greeting： '{old_info.get('greeting')}'\n" \
+                      f"bottom： {old_info.get('bottom')}\n" \
+                      f"top：{old_info.get('top')}"
     else:
         message = "参数无效。"
     await UniMessage.text(message).finish()
@@ -233,11 +220,14 @@ async def jrrp_check_handler():
     items = sp_conn.select_all()
     if items is not None:
         message = f"共有{len(items)}条数据。"
+        index = 1
         for item in items:
-            message += f"\n\nuser_id： {item[0]}\n" \
-                       f"greeting： '{item[1]}'\n" \
-                       f"bottom： {item[2]}\n" \
-                       f"top： {item[3]}"
+            message += f"\n\n{[index]}=================\n" \
+                       f"user_id： {item.get('user_id')}\n" \
+                       f"greeting： '{item.get('greeting')}'\n" \
+                       f"bottom： {item.get('bottom')}\n" \
+                       f"top： {item.get('top')}"
+            index += 1
         await UniMessage.text(message).finish()
 
 
